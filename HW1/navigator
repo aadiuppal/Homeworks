@@ -1,0 +1,234 @@
+#!/usr/bin/python
+import argparse
+import sys
+class Node:
+    def __init__(self,v_index,parent=None):
+        self.parent=parent
+        self.vertex=v_index
+        if parent:
+            self.depth=parent.depth+1
+        else:
+            self.depth=0
+
+    def traceback(self):
+        if self.parent==None:
+            solution_path.append(v_list[self.vertex])
+            return [self.vertex]
+        solution_path.append(v_list[self.vertex])
+        return [self.vertex]+self.parent.traceback()
+
+    def successor(self):
+        return graph[self.vertex]
+
+    def heur(self):
+        x1,y1=v_list[self.vertex]
+        x2,y2=v_list[t]
+        d=(float((x2-x1))**2+float((y2-y1))**2)**0.5
+        return d
+
+
+
+def read_file(filename):
+    global graph
+    global v_list
+    global e_list
+    graph={}
+    v_list=[]
+    e_list=[]
+    try:
+        f=open(filename, 'r')
+    except:
+        print "!!!!!!!!!Bad File Path!!!!!!!!!!!!"
+        sys.exit()
+    for line in f.readlines():
+        line=line.strip().split()
+        if line[0]=="vertices:":
+            v_list=[[]]*int(line[1])
+            vertices=True
+            continue
+        if line[0]=="edges:":
+            e_list=[[]]*int(line[1])
+            edges=True
+            vertices=False
+            continue
+        if vertices:
+            v_list[int(line[0])]=[int(line[1]),int(line[2])]
+        elif edges:
+            e_list[int(line[0])]=[int(line[1]),int(line[2])]
+
+def init_graph():
+    for i in range(len(v_list)):
+        temp=[]
+        for j in e_list:
+            if j[0]==i:
+                temp.append(j[1])
+            elif j[1]==i:
+                temp.append(j[0])
+        graph[i]=temp
+
+def bfs(source,target):
+    isvisited={}
+    qu=[source]
+    max_front=len(qu)
+    iter_count=0
+    while qu:
+        temp=qu[0]
+        qu=qu[1:]
+        if debug:
+            print "iter=",iter_count," len_frontier=",len(qu)," popped=",temp.vertex," ",v_list[temp.vertex]," depth=",temp.depth
+        if temp.vertex==target.vertex:
+            return temp.traceback(),temp.depth,iter_count,max_front,len(isvisited.keys())
+        for i in  temp.successor():
+            if i in isvisited:
+                continue
+            isvisited[i]=True
+            qu.append(Node(i,temp))
+            if debug:
+                print "pushed ",i," ",v_list[i]
+        max_front=max(max_front,len(qu))
+        iter_count+=1
+    return None,None,iter_count,max_front,len(isvisited.keys())
+
+def dfs(source,target):
+    isvisited={}
+    stack=[source]
+    iter_count=0
+    max_front=len(stack)
+    while stack:
+        temp=stack.pop()
+        if debug:
+            print "iter=",iter_count," len_frontier=",len(stack)," popped=",temp.vertex," ",v_list[temp.vertex]," depth=",temp.depth
+        if temp.vertex==target.vertex:
+            return temp.traceback(),temp.depth,iter_count,max_front,len(isvisited.keys())
+        for i in temp.successor():
+            if i in isvisited:
+                continue
+            isvisited[i]=True
+            stack.append(Node(i,temp))
+            if debug:
+                print "pushed ",i," ",v_list[i]
+        max_front=max(max_front,len(stack))
+        iter_count+=1
+    return None,None,iter_count,max_front,len(isvisited.keys())
+
+def greedy_bfs(source,target):
+    isvisited={}
+    front={source:source.heur()}
+    max_front=len(front.keys())
+    iter_count=0
+    while front:
+        temp=sorted(front,key=front.get)[0]
+        if debug:
+            print "iter=",iter_count," len_frontier=",len(front)," popped=",temp.vertex," ",v_list[temp.vertex]," depth=",temp.depth," dist2goal=",front[temp]
+        del front[temp]
+        if temp.vertex==target.vertex:
+            return temp.traceback(),temp.depth,iter_count,max_front,len(isvisited.keys())
+        for i in temp.successor():
+            if i in isvisited:
+                continue
+            isvisited[i]=True
+            node=Node(i,temp)
+            if debug:
+                print "pushed ",i," ",v_list[i]
+            front[node]=node.heur()
+        max_front=max(max_front,len(front))
+        iter_count+=1
+    return None,None,iter_count,max_front,len(isvisited.keys())
+
+def a_star(source,target):
+    isvisited={}
+    front={source:source.heur()+source.depth}
+    max_front=len(front.keys())
+    iter_count=0
+    while front:
+        temp=sorted(front,key=front.get)[0]
+        if debug:
+            print "iter=",iter_count," len_frontier=",len(front)," popped=",temp.vertex," ",v_list[temp.vertex]," depth=",temp.depth," dist2goal=",front[temp]-temp.depth
+        del front[temp]
+        if temp.vertex==target.vertex:
+            return temp.traceback(),temp.depth,iter_count,max_front,len(isvisited.keys())
+        for i in temp.successor():
+            if i in isvisited:
+                continue
+            isvisited[i]=True
+            node=Node(i,temp)
+            if debug:
+                print "pushed ",i," ",v_list[i]
+            front[node]=node.heur()+float(node.depth)
+        max_front=max(max_front,len(front.keys()))
+        iter_count+=1
+    return None,None,iter_count,max_front,len(isvisited.keys())
+
+def print_solution(vertex_path):
+    print "solution_path:"
+    for i in range(len(solution_path)):
+        if print_mode:
+            print v_list[vertex_path[i]][0],v_list[vertex_path[i]][1]
+        else:
+            #print "vertex ",vertex_path[i],tuple(v_list[vertex_path[i]])
+            continue
+
+
+###### Main fucntion
+if __name__=="__main__":
+
+    parser=argparse.ArgumentParser()
+    parser.add_argument("-f","--file",dest="graph_file",default="ATM.graph.txt",help="input graph file")
+    parser.add_argument('--debug', dest='debug_flag', action='store_true',help="set debug flag True")
+    parser.add_argument('--no-debug', dest='debug_flag', action='store_false',help="set debug flag False, default is False")
+    parser.set_defaults(debug_flag=False)
+    parser.add_argument("-s","--search",dest="search_type",default="astar",help="can have values: astar, gbfs, bfs, dfs. Default is a_star")
+    parser.add_argument('--print', dest='print_mode', action='store_true',help="display so as to get output for graphical display on webpage")
+    parser.add_argument('--no-print', dest='print_mode', action='store_false',help="Default display as mentioned in the HW handout")
+    parser.set_defaults(debug_flag=False)
+    parser.add_argument("points",nargs='*',default=[20,1,1,20],type=int)
+    args=parser.parse_args()
+
+    if len(args.points)!=4:
+        print "!!!!!!!!!!!!!Invalid input points, using default 20,1 to 1,20!!!!!!!!!!!!!!!"
+        args.points=[20,1,1,20]
+    s=[args.points[0],args.points[1]]
+    t=[args.points[2],args.points[3]]
+
+    read_file(args.graph_file)
+    debug=args.debug_flag
+    search=args.search_type
+    print_mode=args.print_mode
+
+    init_graph()
+    global solution_path
+    solution_path=[]
+    for i in range(len(v_list)):
+        if v_list[i]==s:
+            s=i
+        if v_list[i]==t:
+            t=i
+    if type(s)!=int or type(t)!=int:
+        print "Invalid points specified"
+        sys.exit()
+    print v_list[s],"to",v_list[t]
+    source=Node(s)
+    target=Node(t)
+
+    if search=="bfs":
+        vertex_path,depth,iter_count,front_size,visit=bfs(source,target)
+    elif search =="dfs":
+        vertex_path,depth,iter_count,front_size,visit=dfs(source,target)
+    elif search == "gbfs":
+        vertex_path,depth,iter_count,front_size,visit=greedy_bfs(source,target)
+    else:
+        vertex_path,depth,iter_count,front_size,visit=a_star(source,target)
+        search="astar"
+
+    ####print statements
+    print_solution(vertex_path)
+    print
+    print "Some statistics:"
+    print "==============="
+    print "Search algorithm:",search.upper()
+    print "Iteration Count:",iter_count
+    print "max frontier size:",front_size
+    print "vertices visited: %d/%d"%(visit,len(v_list))
+    print "Path length:",depth
+    print "--------------------------------------Completed Execution----------------------------------------------------------"
+    print
