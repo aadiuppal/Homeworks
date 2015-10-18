@@ -1,0 +1,69 @@
+1 ['F', 'D']
+2 ['C', 'A']
+3 ['B', 'E', 'G']
+--------------
+1 ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+2 []
+3 []
+____Some Statistics____
+Heuristic : default heur
+Max frontier length 25255
+Length of path 19
+Number of iterations 22369
+Visited States 47623
+____Some Statistics____
+Heuristic : Matching rows
+Max frontier length 2340
+Length of path 18
+Number of iterations 1493
+Visited States 3832
+
+
+
+
+
+1 ['B', 'A']
+2 ['G', 'C', 'F']
+3 ['E', 'D']
+--------------
+1 ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+2 []
+3 []
+____Some Statistics____
+Heuristic : default heur
+Max frontier length 11609
+Length of path 18
+Number of iterations 9136
+Visited States 20744
+____Some Statistics____
+Heuristic : Matching rows
+Max frontier length 524
+Length of path 17
+Number of iterations 350
+Visited States 873
+
+
+
+
+
+
+1 ['C', 'D', 'B']
+2 ['G', 'A', 'F']
+3 ['E']
+--------------
+1 ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+2 []
+3 []
+____Some Statistics____
+Heuristic : default heur
+Max frontier length 4199
+Length of path 17
+Number of iterations 3054
+Visited States 7252
+____Some Statistics____
+Heuristic : Matching rows
+Max frontier length 328
+Length of path 16
+Number of iterations 212
+Visited States 539
+
